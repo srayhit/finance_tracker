@@ -3,7 +3,6 @@ import plotly.express as px
 import streamlit as st
 
 def plot_expense_donut(df):
-    """Renders a responsive Plotly donut chart for expenditure categories."""
     if df.empty or "Type" not in df.columns:
         st.info("No transaction data available for expense breakdown.")
         return
@@ -13,7 +12,6 @@ def plot_expense_donut(df):
         st.info("No expenditures logged yet.")
         return
         
-    # Ensure Amount is numeric
     exp_df["Amount"] = pd.to_numeric(exp_df["Amount"], errors="coerce")
     
     fig = px.pie(
@@ -26,9 +24,7 @@ def plot_expense_donut(df):
     fig.update_layout(margin=dict(t=40, b=10, l=10, r=10))
     st.plotly_chart(fig, use_container_width=True)
 
-
 def plot_monthly_trend_bar(df):
-    """Renders a grouped bar chart comparing monthly income vs expenditure."""
     if df.empty or "Date" not in df.columns or "Type" not in df.columns:
         st.info("No data available for monthly trend.")
         return
@@ -54,9 +50,7 @@ def plot_monthly_trend_bar(df):
     fig.update_layout(margin=dict(t=40, b=10, l=10, r=10))
     st.plotly_chart(fig, use_container_width=True)
 
-
 def render_balance_table(df):
-    """Renders a summary table of account flows."""
     if df.empty:
         st.info("No accounts or balances recorded yet.")
         return

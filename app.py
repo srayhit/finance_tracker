@@ -1,81 +1,40 @@
 import streamlit as st
 from src.profile_selector import render_profile_selector
 from src.database import load_data
-from src.analytics import filter_visible_data, calculate_kpis, get_category_breakdown, get_monthly_trends
+from src.analytics import calculate_kpis, filter_visible_data
 from src.components.forms import render_transaction_form
 from src.components.charts import plot_expense_donut, plot_monthly_trend_bar, render_balance_table
 
-# Page Configuration Initialization
-st.set_page_config(
-    page_title="Family Finance Tracker",
-    page_icon="💰",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="Personal Finance Tracker", page_icon="💰", layout="wide")
 
 st.title("📊 Cloud-Native Personal Finance Tracker")
 
-# 1. Trigger Implicit Multi-user Profile context
-render_profile_selector()
-current_user = st.session_state["current_user"]
+active_user, view_mode = render_profile_selector()
+page = st.sidebar.radio("Navigation", ["Dashboard", "Log Entry"])
 
-# 2. Fetch Datastore Content live from Google Workspace Sheets API
-try:
-    raw_df, income_cats, expense_cats = load_data()
-except Exception as e:
-    st.error(f"Failed to securely authenticate or pull data from Google Cloud Store. Verify your configuration secrets. Details: {e}")
-    st.stop()
+df_transactions = load_data("Transactions")
 
-# 3. Apply Multi-tenant Governance and Isolation
-visible_df = filter_visible_data(raw_df, current_user)
-
-# 4. Generate Analytic Calculations Engine Metrics
-kpis = calculate_kpis(visible_df)
-
-# 5. Core Metric KPI Card Layout Grid Array
-kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
-with kpi_col1:
-    st.metric(label="Net Portfolio Balance", value=f"${kpis['net_balance']:,.2f}")
-with kpi_col2:
-    st.metric(label="Total Income Sourced", value=f"${kpis['total_income']:,.2f}", delta_color="normal")
-with kpi_col3:
-    st.metric(label="Total Outflow Expenses", value=f"${kpis['total_expense']:,.2f}", delta_color="inverse")
-
-st.markdown("---")
-
-# 6. Primary Dual Column Workspace Layout Split
-left_panel, right_panel = st.columns([1, 1])
-
-with left_panel:
-    # Transaction Processing and Appending UI Block
-    render_transaction_form(income_cats, expense_cats)
-
-with right_panel:
-    st.subheader("📈 Visualization Panels")
+if page == "Log Entry":
+    render_transaction_form(active_user)
+elif page == "Dashboard":
+    st.subheader(f"Financial Overview ({view_mode} View - {active_user})")
     
-    # Process Presentation Datasets
-    expense_breakdown = get_category_breakdown(visible_df, "Expense")
-    monthly_trends = get_monthly_trends(visible_df)
+    income, expenditure, savings, savings_rate = calculate_kpis(df_transactions, active_user, view_mode)
     
-    # Dynamic tab layouts for presentation layers
-    tab1, tab2 = st.tabs(["Expense Shares", "Historic Growth Trends"])
-    with tab1:
-        plot_expense_donut(expense_breakdown)
-    with tab2:
-        plot_monthly_trend_bar(monthly_trends)
-
-st.markdown("---")
-
-# 7. Balance Sheets Dataframe Overview grid row
-render_balance_table(visible_df)
-
-# 8. Raw Historical Log Visualizer
-with st.expander("📄 View Auditable Historical Audit Log Rows"):
-    if not visible_df.empty:
-        st.dataframe(
-            visible_df.sort_values(by="Date", ascending=False),
-            use_container_width=True,
-            hide_index=True
-        )
-    else:
-        st.info("No recent entries recorded.")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Income", f"₹{income:,.2f}")
+    col2.metric("Total Expenditure", f"₹{expenditure:,.2f}")
+    col3.metric("Net Savings", f"₹{savings:,.2f}")
+    col4.metric("Savings Rate", f"{savings_rate:.1f}%")
+    
+    st.markdown("---")
+    
+    chart_df = filter_visible_data(df_transactions, active_user, view_mode)
+    
+    col_left, col_right = st.columns(2)
+    with col_left:
+        plot_expense_donut(chart_df)
+    with col_right:
+        plot_monthly_trend_bar(chart_df)
+        
+    render_balance_table(chart_df)

@@ -1,43 +1,25 @@
 import pandas as pd
 
-def filter_visible_data(df: pd.DataFrame, current_user: str) -> pd.DataFrame:
-    """Filters out private data belonging to other users."""
-    if df.empty:
+def filter_visible_data(df, active_user, view_mode):
+    if df.empty or "User" not in df.columns:
         return df
-    # Show transaction if it's not private, OR if it belongs to the current user
-    # Shared entries belong to "Shared / Family" and are visible unless marked private by a specific user profile
-    condition = (~df["Is_Private"]) | (df["User"] == current_user)
-    return df[condition].copy()
+    if view_mode == "Individual":
+        return df[df["User"] == active_user]
+    else:
+        if "Private" in df.columns:
+            return df[(df["Private"].astype(str).str.lower() != "true") | (df["User"] == active_user)]
+        return df
 
-def calculate_kpis(df: pd.DataFrame) -> dict:
-    """Calculates Net Balance, Total Income, and Total Expenses."""
-    if df.empty:
-        return {"net_balance": 0.0, "total_income": 0.0, "total_expense": 0.0}
+def calculate_kpis(df, active_user, view_mode):
+    filtered_df = filter_visible_data(df, active_user, view_mode)
+    if filtered_df.empty or "Amount" not in filtered_df.columns:
+        return 0.0, 0.0, 0.0, 0.0
+        
+    filtered_df["Amount"] = pd.to_numeric(filtered_df["Amount"], errors="coerce").fillna(0)
     
-    income = df[df["Type"] == "Income"]["Amount"].sum()
-    expense = df[df["Type"] == "Expense"]["Amount"].sum()
-    net = income - expense
+    total_income = filtered_df[filtered_df["Type"] == "Income"]["Amount"].sum()
+    total_expenditure = filtered_df[filtered_df["Type"] == "Expenditure"]["Amount"].sum()
+    net_savings = total_income - total_expenditure
+    savings_rate = (net_savings / total_income * 100) if total_income > 0 else 0.0
     
-    return {
-        "net_balance": float(net),
-        "total_income": float(income),
-        "total_expense": float(expense)
-    }
-
-def get_category_breakdown(df: pd.DataFrame, tx_type: str) -> pd.DataFrame:
-    """Aggregates spending/income totals broken down by Category."""
-    filtered = df[df["Type"] == tx_type]
-    if filtered.empty:
-        return pd.DataFrame(columns=["Category", "Amount"])
-    return filtered.groupby("Category", as_index=False)["Amount"].sum()
-
-def get_monthly_trends(df: pd.DataFrame) -> pd.DataFrame:
-    """Aggregates transactional amounts by Month and Type for trend visualization."""
-    if df.empty:
-        return pd.DataFrame(columns=["Month", "Type", "Amount"])
-    
-    df_copy = df.copy()
-    df_copy["Month"] = df_copy["Date"].dt.to_period("M").astype(str)
-    
-    trend = df_copy.groupby(["Month", "Type"], as_index=False)["Amount"].sum()
-    return trend
+    return total_income, total_expenditure, net_savings, savings_rate

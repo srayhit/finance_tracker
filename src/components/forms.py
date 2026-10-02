@@ -1,7 +1,7 @@
 import datetime
 import streamlit as st
 from src.config import ACCOUNT_TYPES, DEFAULT_CATEGORIES
-from src.database import get_connection
+from src.database import append_row
 
 def render_transaction_form(active_user):
     st.subheader("📝 Log New Financial Entry")
@@ -12,7 +12,6 @@ def render_transaction_form(active_user):
         account = st.selectbox("Account / Asset", ACCOUNT_TYPES)
         amount = st.number_input("Amount", min_value=0.0, format="%.2f")
         
-        # Select categories based on entry type
         categories = DEFAULT_CATEGORIES.get(entry_type, ["General"])
         category = st.selectbox("Category", categories)
         
@@ -38,9 +37,7 @@ def render_transaction_form(active_user):
                     str(private_flag)
                 ]
                 try:
-                    sh = get_connection()
-                    worksheet = sh.worksheet("Transactions")
-                    worksheet.append_row(row_data)
+                    append_row(row_data)
                     st.success("Entry successfully logged to Google Sheets!")
                 except Exception as e:
                     st.error(f"Failed to save entry: {e}")
