@@ -1,8 +1,10 @@
-USERS = ["Alice", "Bob", "Charlie", "Shared / Family"]
+SPREADSHEET_NAME = "Personal_Finance_Tracker"
 
-ACCOUNT_TYPES = ["Checking Account", "Savings Account", "Credit Card", "Cash"]
+USERS = ["Admin (Master)", "Sarah", "Mike"]
+
+ACCOUNT_TYPES = ["Checking", "Savings", "Brokerage", "Cash"]
 
 DEFAULT_CATEGORIES = {
-    "Income": ["Salary", "Investment", "Gift", "Other Income"],
-    "Expense": ["Housing", "Groceries", "Utilities", "Entertainment", "Dining Out", "Transport", "Healthcare", "Shopping", "Misc Expense"]
+    "Expenditure": ["Groceries", "Rent", "Utilities", "Transport", "Entertainment"],
+    "Income": ["Salary", "Interest", "Capital Gains", "Other"]
 }
