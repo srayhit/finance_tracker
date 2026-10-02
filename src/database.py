@@ -1,23 +1,13 @@
-import streamlit as st
 import gspread
 import pandas as pd
-from datetime import datetime
-
-import gspread
 import streamlit as st
-from src.config import SPREADSHEET_NAME
-
-def get_connection():
-    # Connect using service account from Streamlit secrets
-    gc = gspread.service_account_from_dict(st.secrets["gcp_service_account"])
-    sh = gc.open(SPREADSHEET_NAME)
-    return sh
+from datetime import datetime
+from src.config import SPREADSHEET_NAME, DEFAULT_CATEGORIES
 
 @st.cache_resource
 def get_gspread_client():
     """Initializes and caches the Google Sheets client using Streamlit secrets."""
     credentials = dict(st.secrets["gcp_service_account"])
-    # Handle newline escaping for private key
     if "\\n" in credentials["private_key"]:
         credentials["private_key"] = credentials["private_key"].replace("\\n", "\n")
     return gspread.service_account_from_dict(credentials)
@@ -40,12 +30,13 @@ def load_data() -> tuple[pd.DataFrame, list[str], list[str]]:
     tx_records = tx_sheet.get_all_records()
     df = pd.DataFrame(tx_records)
     
-    if df.empty:
+    if df.empty or "Date" not in df.columns:
         df = pd.DataFrame(columns=["Date", "User", "Type", "Category", "Amount", "Account", "Description", "Is_Private"])
     else:
-        df["Date"] = pd.to_datetime(df["Date"])
-        df["Amount"] = pd.to_numeric(df["Amount"])
-        df["Is_Private"] = df["Is_Private"].astype(bool)
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce").fillna(0)
+        if "Is_Private" in df.columns:
+            df["Is_Private"] = df["Is_Private"].astype(bool)
 
     # 2. Load Custom Categories Sheet
     try:
@@ -55,7 +46,6 @@ def load_data() -> tuple[pd.DataFrame, list[str], list[str]]:
     except gspread.exceptions.WorksheetNotFound:
         cat_sheet = wb.add_worksheet(title="Categories", rows=1, cols=2)
         cat_sheet.append_row(["Type", "Category"])
-        from src.config import DEFAULT_CATEGORIES
         initial_rows = []
         for t, cats in DEFAULT_CATEGORIES.items():
             for c in cats:
@@ -64,9 +54,22 @@ def load_data() -> tuple[pd.DataFrame, list[str], list[str]]:
             cat_sheet.append_rows(initial_rows)
         cat_df = pd.DataFrame(initial_rows, columns=["Type", "Category"])
 
-    income_cats = cat_df[cat_df["Type"] == "Income"]["Category"].tolist()
-    expense_cats = cat_df[cat_df["Type"] == "Expense"]["Category"].tolist()
+    # Normalize column names to prevent KeyError
+    if not cat_df.empty:
+        cat_df.columns = [str(col).strip().capitalize() for col in cat_df.columns]
+
+    if "Type" not in cat_df.columns or "Category" not in cat_df.columns:
+        cat_df = pd.DataFrame(columns=["Type", "Category"])
+
+    # Fetch income and expenditure categories safely (matching "Expenditure" from config)
+    income_cats = cat_df[cat_df["Type"] == "Income"]["Category"].tolist() if not cat_df.empty else []
+    expense_cats = cat_df[cat_df["Type"] == "Expenditure"]["Category"].tolist() if not cat_df.empty else []
     
+    if not income_cats:
+        income_cats = DEFAULT_CATEGORIES.get("Income", ["Salary", "Other"])
+    if not expense_cats:
+        expense_cats = DEFAULT_CATEGORIES.get("Expenditure", ["Groceries", "Rent"])
+
     return df, income_cats, expense_cats
 
 def append_row(row_data: list):
