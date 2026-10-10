@@ -1,5 +1,12 @@
 import pandas as pd
 
+
+def _normalize_transaction_type(series):
+    if series.empty:
+        return series
+    return series.map(lambda value: "Expenditure" if str(value).strip().lower() in {"expense", "expenditure"} else value)
+
+
 def filter_visible_data(df, active_user, view_mode):
     if df.empty or "User" not in df.columns:
         return df
@@ -10,16 +17,21 @@ def filter_visible_data(df, active_user, view_mode):
             return df[(df["Private"].astype(str).str.lower() != "true") | (df["User"] == active_user)]
         return df
 
+
 def calculate_kpis(df, active_user, view_mode):
     filtered_df = filter_visible_data(df, active_user, view_mode)
     if filtered_df.empty or "Amount" not in filtered_df.columns:
         return 0.0, 0.0, 0.0, 0.0
-        
+
+    if "Type" in filtered_df.columns:
+        filtered_df = filtered_df.copy()
+        filtered_df["Type"] = _normalize_transaction_type(filtered_df["Type"])
+
     filtered_df["Amount"] = pd.to_numeric(filtered_df["Amount"], errors="coerce").fillna(0)
-    
+
     total_income = filtered_df[filtered_df["Type"] == "Income"]["Amount"].sum()
     total_expenditure = filtered_df[filtered_df["Type"] == "Expenditure"]["Amount"].sum()
     net_savings = total_income - total_expenditure
     savings_rate = (net_savings / total_income * 100) if total_income > 0 else 0.0
-    
+
     return total_income, total_expenditure, net_savings, savings_rate
