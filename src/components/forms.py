@@ -1,7 +1,7 @@
 import datetime
 import streamlit as st
-from src.config import ACCOUNT_TYPES, DEFAULT_CATEGORIES
-from src.database import append_row, get_registered_accounts
+from src.config import ACCOUNT_TYPES
+from src.database import append_row, get_registered_accounts, get_active_categories, add_category
 
 def render_transaction_form(active_user):
     st.subheader("📝 Log New Financial Entry")
@@ -14,7 +14,8 @@ def render_transaction_form(active_user):
         account = st.selectbox("Account / Source", dynamic_accounts)
         amount = st.number_input("Amount", min_value=0.0, format="%.2f")
         
-        categories = DEFAULT_CATEGORIES.get(entry_type, ["General"])
+        # Dynamically fetch categories based on the selected Entry Type radio button
+        categories = get_active_categories(entry_type)
         category = st.selectbox("Category", categories)
         
         description = st.text_input("Description / Notes")
@@ -45,9 +46,10 @@ def render_transaction_form(active_user):
                     st.error(f"Failed to save entry: {e}")
 
 def render_setup_forms(active_user):
-    st.subheader("⚙️ Manage Accounts & Credit Cards")
+    st.subheader("⚙️ Manage Accounts, Cards & Categories")
     
-    tab1, tab2 = st.tabs(["💳 Add Credit Card", "🏦 Add Bank / UPI Account"])
+    # Added a third tab for Category Management
+    tab1, tab2, tab3 = st.tabs(["💳 Add Credit Card", "🏦 Add Bank / UPI Account", "🏷️ Add Category"])
     
     with tab1:
         with st.form("cc_form", clear_on_submit=True):
@@ -75,3 +77,16 @@ def render_setup_forms(active_user):
                 row_data = [timestamp, active_user, bank_name_acc, account_type, account_name]
                 append_row("Accounts", row_data)
                 st.success(f"Account '{account_name}' added successfully!")
+                
+    with tab3:
+        with st.form("category_form", clear_on_submit=True):
+            cat_type = st.radio("Category Assignment", ["Expenditure", "Income", "Investment"], horizontal=True)
+            cat_name = st.text_input("New Category Name (e.g., Freelance Project, Subscriptions)")
+            
+            cat_submitted = st.form_submit_button("Save Category")
+            if cat_submitted:
+                if cat_name.strip():
+                    add_category(cat_type, cat_name.strip())
+                    st.success(f"New {cat_type} category '{cat_name}' added successfully!")
+                else:
+                    st.error("Please enter a valid category name.")

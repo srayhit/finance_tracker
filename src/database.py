@@ -76,3 +76,19 @@ def get_registered_accounts(active_user):
         accounts_list = ["Default Savings", "Default UPI"]
         
     return accounts_list
+
+# Add this at the bottom of src/database.py
+
+def get_active_categories(entry_type: str):
+    """Fetches categories from the Google Sheet, falling back to config defaults."""
+    df_cats = load_data("Categories")
+    
+    if not df_cats.empty and "Type" in df_cats.columns and "Category" in df_cats.columns:
+        # Filter by type (Expenditure, Income, Investment)
+        filtered = df_cats[df_cats["Type"].str.lower() == entry_type.lower()]
+        if not filtered.empty:
+            return filtered["Category"].dropna().astype(str).tolist()
+            
+    # If the sheet is empty, fall back to the config.py defaults
+    from src.config import DEFAULT_CATEGORIES
+    return DEFAULT_CATEGORIES.get(entry_type, ["General"])
