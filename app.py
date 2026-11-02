@@ -2,7 +2,7 @@ import streamlit as st
 from src.profile_selector import render_profile_selector
 from src.database import load_data
 from src.analytics import calculate_kpis, filter_visible_data
-from src.components.forms import render_transaction_form
+from src.components.forms import render_transaction_form, render_setup_forms
 from src.components.charts import plot_expense_donut, plot_monthly_trend_bar, render_balance_table
 
 st.set_page_config(page_title="Personal Finance Tracker", page_icon="💰", layout="wide")
@@ -10,12 +10,14 @@ st.set_page_config(page_title="Personal Finance Tracker", page_icon="💰", layo
 st.title("📊 Cloud-Native Personal Finance Tracker")
 
 active_user, view_mode = render_profile_selector()
-page = st.sidebar.radio("Navigation", ["Dashboard", "Log Entry"])
+page = st.sidebar.radio("Navigation", ["Dashboard", "Log Entry", "Manage Accounts & Cards"])
 
 df_transactions = load_data("Transactions")
 
 if page == "Log Entry":
     render_transaction_form(active_user)
+elif page == "Manage Accounts & Cards":
+    render_setup_forms(active_user)
 elif page == "Dashboard":
     st.subheader(f"Financial Overview ({view_mode} View - {active_user})")
     
