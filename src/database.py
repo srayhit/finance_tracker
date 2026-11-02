@@ -1,7 +1,7 @@
 import gspread
 import pandas as pd
 import streamlit as st
-from src.config import SPREADSHEET_NAME, SHEET_SCHEMAS
+from src.config import SPREADSHEET_NAME, SHEET_SCHEMAS, DEFAULT_CATEGORIES
 
 @st.cache_resource
 def get_gspread_client():
@@ -60,6 +60,11 @@ def append_row(tab_name: str, row_data: list):
     sheet = get_or_create_worksheet(wb, tab_name)
     sheet.append_row(row_data)
 
+def add_category(category_type: str, category_name: str):
+    wb = get_connection()
+    sheet = get_or_create_worksheet(wb, "Categories")
+    sheet.append_row([category_type, category_name])
+
 def get_registered_accounts(active_user):
     """Fetches user-specific accounts and credit cards for dynamic dropdowns."""
     df_acc = load_data("Accounts")
@@ -77,8 +82,6 @@ def get_registered_accounts(active_user):
         
     return accounts_list
 
-# Add this at the bottom of src/database.py
-
 def get_active_categories(entry_type: str):
     """Fetches categories from the Google Sheet, falling back to config defaults."""
     df_cats = load_data("Categories")
@@ -90,5 +93,4 @@ def get_active_categories(entry_type: str):
             return filtered["Category"].dropna().astype(str).tolist()
             
     # If the sheet is empty, fall back to the config.py defaults
-    from src.config import DEFAULT_CATEGORIES
     return DEFAULT_CATEGORIES.get(entry_type, ["General"])
