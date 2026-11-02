@@ -1,11 +1,18 @@
 import streamlit as st
 from src.profile_selector import render_profile_selector
-from src.database import load_data
+from src.database import load_data, initialize_database
 from src.analytics import calculate_kpis, filter_visible_data
 from src.components.forms import render_transaction_form, render_setup_forms
 from src.components.charts import plot_expense_donut, plot_monthly_trend_bar, render_balance_table
 
 st.set_page_config(page_title="Personal Finance Tracker", page_icon="💰", layout="wide")
+
+# --- One-Time Database Check & Header Initialization ---
+if "db_initialized" not in st.session_state:
+    with st.spinner("Verifying cloud database schemas..."):
+        initialize_database()
+        st.session_state["db_initialized"] = True
+# -------------------------------------------------------
 
 st.title("📊 Cloud-Native Personal Finance Tracker")
 
