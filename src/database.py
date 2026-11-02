@@ -15,32 +15,44 @@ def get_connection():
     return client.open_by_key(st.secrets["spreadsheet"]["id"])
 
 def initialize_database():
-    """Runs on app startup to verify sheets exist and force-insert headers if missing."""
-    wb = get_connection()
+    """Ensures worksheets exist and have a single header row without inserting duplicates."""
+    try:
+        wb = get_connection()
+    except Exception as e:
+        st.error(f"Failed to connect to Google Sheets: {e}")
+        return
+
     existing_worksheets = {ws.title.strip().lower(): ws for ws in wb.worksheets()}
     
     for tab_name, headers in SHEET_SCHEMAS.items():
         target_lower = tab_name.strip().lower()
         
         if target_lower not in existing_worksheets:
-            # 1. Sheet doesn't exist at all -> Create it and add headers
+            # 1. Sheet doesn't exist -> Create and append headers as row 1
             ws = wb.add_worksheet(title=tab_name, rows=100, cols=max(len(headers), 5))
             ws.append_row(headers)
         else:
-            # 2. Sheet exists -> Check if headers are present
             ws = existing_worksheets[target_lower]
-            try:
-                first_row = ws.row_values(1)
-            except Exception:
-                first_row = []
+            all_rows = ws.get_all_values()
+            
+            if not all_rows:
+                # 2. Sheet is empty -> Append headers
+                ws.append_row(headers)
+            else:
+                # 3. Sheet has data -> Check if row 1 is already the exact header row
+                first_row_normalized = [str(cell).strip().lower() for cell in all_rows[0]]
+                headers_normalized = [str(h).strip().lower() for h in headers]
                 
-            # If the row is empty, or the first column header doesn't match our schema
-            if not first_row or str(first_row[0]).strip().lower() != str(headers[0]).strip().lower():
-                # Safely insert the schema headers at Row 1, pushing any existing data down
-                ws.insert_row(headers, index=1)
+                # Only insert headers if Row 1 is NOT the header row and no header row exists in top 5 rows
+                if first_row_normalized != headers_normalized:
+                    header_already_present = any(
+                        [str(c).strip().lower() for c in row] == headers_normalized
+                        for row in all_rows[:5]
+                    )
+                    if not header_already_present:
+                        ws.insert_row(headers, index=1)
 
 def get_or_create_worksheet(wb, target_title):
-    """Fetches the worksheet safely (initialization is already handled globally)."""
     for ws in wb.worksheets():
         if ws.title.strip().lower() == target_title.strip().lower():
             return ws
@@ -66,7 +78,6 @@ def add_category(category_type: str, category_name: str):
     sheet.append_row([category_type, category_name])
 
 def get_registered_accounts(active_user):
-    """Fetches user-specific accounts and credit cards for dynamic dropdowns."""
     df_acc = load_data("Accounts")
     df_cc = load_data("CreditCards")
     
@@ -83,14 +94,11 @@ def get_registered_accounts(active_user):
     return accounts_list
 
 def get_active_categories(entry_type: str):
-    """Fetches categories from the Google Sheet, falling back to config defaults."""
     df_cats = load_data("Categories")
     
     if not df_cats.empty and "Type" in df_cats.columns and "Category" in df_cats.columns:
-        # Filter by type (Expenditure, Income, Investment)
         filtered = df_cats[df_cats["Type"].str.lower() == entry_type.lower()]
         if not filtered.empty:
             return filtered["Category"].dropna().astype(str).tolist()
             
-    # If the sheet is empty, fall back to the config.py defaults
     return DEFAULT_CATEGORIES.get(entry_type, ["General"])
