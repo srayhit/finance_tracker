@@ -7,15 +7,12 @@ USERS = ["Admin (Master)", "Sarah", "Mike"]
 ACCOUNT_TYPES = ["Savings", "Current", "Salary", "UPI / Wallet", "Credit Card"]
 
 DEFAULT_CATEGORIES = {
-    "Expenditure": ["Groceries", "Rent", "Utilities", "Transport", "Entertainment", "Celebration Expenses", "Dining Out"],
+    "Expenditure": ["Groceries", "Rent", "Utilities", "Transport", "Entertainment", "Dining Out"],
     "Income": [
-        "Salary", 
-        "Savings Bank Interest", 
-        "Fixed Deposits Interest", 
-        "Dividends from Brokerage", 
-        "Gifts from Family", 
-        "Asset Sale", 
-        "Other"
+        "Salary - Primary", 
+        "Savings Bank - Default Interest", 
+        "Secondary Income - House Rent", 
+        "Other Sources - Gifts"
     ],
     "Investment": ["Mutual Funds", "Direct Equity", "Bonds", "PPF", "Real Estate"]
 }
