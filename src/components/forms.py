@@ -18,11 +18,11 @@ def render_transaction_form(active_user):
         description = st.text_input("Description / Notes")
         private_flag = st.checkbox("Keep Private (Hide from combined family view)")
         
-        submitted = st.form_submit_button("🚀 Submit Entry")
+        submitted = st.form_submit_button("Submit Entry")
         
         if submitted:
-            if amount <= 0:
-                st.error("Please enter a valid amount greater than zero.")
+            if amount <= 100:
+                st.error("Please enter a valid amount greater than 100.")
             else:
                 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 row_data = [
