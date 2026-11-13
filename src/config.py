@@ -2,8 +2,6 @@
 
 SPREADSHEET_NAME = "Personal_Finance_Tracker"
 
-USERS = ["Admin (Master)", "Sarah", "Mike"]
-
 ACCOUNT_TYPES = ["Savings", "Current", "Salary", "UPI / Wallet", "Credit Card"]
 
 DEFAULT_CATEGORIES = {

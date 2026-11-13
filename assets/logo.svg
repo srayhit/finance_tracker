@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="156" height="28" viewBox="0 0 156 28" fill="none">
+  <rect x="0" y="2" width="24" height="24" rx="7" fill="#0f766e"/>
+  <text x="12" y="20" text-anchor="middle" font-family="Inter, Segoe UI, sans-serif" font-size="15" font-weight="700" fill="#ffffff">₹</text>
+  <text x="33" y="19" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="600" letter-spacing="-0.3" fill="#27272a">ledger</text>
+</svg>

@@ -2,6 +2,7 @@ import gspread
 import pandas as pd
 import streamlit as st
 from src.config import SPREADSHEET_NAME, SHEET_SCHEMAS, DEFAULT_CATEGORIES
+from src.data_sources import active_spreadsheet_id
 
 @st.cache_resource
 def get_gspread_client():
@@ -12,7 +13,7 @@ def get_gspread_client():
 
 def get_connection():
     client = get_gspread_client()
-    return client.open_by_key(st.secrets["spreadsheet"]["id"])
+    return client.open_by_key(active_spreadsheet_id())
 
 def initialize_database():
     """Ensures worksheets exist and have a single header row without inserting duplicates."""

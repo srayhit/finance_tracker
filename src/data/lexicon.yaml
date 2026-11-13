@@ -1,0 +1,555 @@
+# ============================================================================
+# src/data/lexicon.yaml
+#
+# Seed lexicon for the description -> tags/category engine.
+#
+# - Human-editable and version-controlled.
+# - Loaded locally at startup. No network calls.
+# - Adding a word/alias is a DATA edit, not a code change.
+# - Future: a free LLM can propose additions offline; a human reviews and
+#   commits them here. Never called at runtime.
+#
+# Canonical keys are lowercase slugs. `aliases` are matched after normalizing
+# the description (lowercase, punctuation stripped, simple plural handling).
+# ============================================================================
+
+version: 1
+updated: "2026-11-09"
+
+description: >
+  Seed items, merchants, services, channels and category rules. Grow this list
+  as new stores, foods and regional words appear.
+
+settings:
+  max_tags_per_entry: 8
+  auto_add_parent_tags: true
+  fuzzy_match: true
+  fuzzy_min_score: 85
+  case_sensitive: false
+  fallback_category: Groceries
+
+# ----------------------------------------------------------------------------
+# Channel tags: how the purchase happened.
+# ----------------------------------------------------------------------------
+channels:
+  online:
+    aliases:
+      - online
+      - app
+      - website
+      - web
+      - online order
+      - delivery app
+      - ordered online
+  instore:
+    aliases:
+      - instore
+      - in-store
+      - in store
+      - shop
+      - store
+      - market
+      - mall
+      - kirana
+      - counter
+      - walked in
+
+# ----------------------------------------------------------------------------
+# Payment method tags: how the payment was made. These are tags, not accounts.
+# UPI debits the linked bank account directly; only use a `wallet` account if
+# it holds a stored balance.
+# ----------------------------------------------------------------------------
+methods:
+  upi:
+    aliases:
+      - upi
+      - gpay
+      - google pay
+      - phonepe
+      - paytm
+      - bhim
+  netbanking:
+    aliases:
+      - netbanking
+      - net banking
+      - neft
+      - imps
+      - rtgs
+      - bank transfer
+  auto_debit:
+    aliases:
+      - auto debit
+      - autodebit
+      - mandate
+      - standing instruction
+      - ecs
+  cheque:
+    aliases:
+      - cheque
+      - check
+  cash:
+    aliases:
+      - cash
+      - cod
+      - cash on delivery
+  card:
+    aliases:
+      - card
+      - credit card
+      - debit card
+      - swiped
+      - pos
+  wallet:
+    aliases:
+      - wallet
+      - paytm wallet
+      - amazon pay balance
+      - phonepe wallet
+
+# ----------------------------------------------------------------------------
+# Service tags: used when one merchant has multiple businesses.
+# Each service carries its own channel and default category.
+# ----------------------------------------------------------------------------
+services:
+  instamart:
+    display_name: Instamart
+    aliases:
+      - instamart
+      - insta mart
+      - swiggy instamart
+    channel: online
+    category: Groceries
+  dineout:
+    display_name: Dineout
+    aliases:
+      - dineout
+      - dine out
+      - swiggy dineout
+      - dining out
+      - restaurant booking
+      - table booking
+    channel: instore
+    category: Dining Out
+  food_delivery:
+    display_name: Food delivery
+    aliases:
+      - delivery
+      - food delivery
+      - order food
+      - dinner
+      - lunch
+      - breakfast
+      - food
+    channel: online
+    category: Dining Out
+
+# ----------------------------------------------------------------------------
+# Item tags: what was bought. `parent` auto-adds the broader tag
+# (apples -> fruits, bhindi -> veggies). Both chips appear in the UI.
+# ----------------------------------------------------------------------------
+items:
+  fruits:
+    display_name: fruits
+    parent: null
+    aliases:
+      - fruit
+      - phal
+      - फल
+    category: Groceries
+  apples:
+    display_name: apples
+    parent: fruits
+    aliases:
+      - apple
+      - seb
+      - सेब
+    category: Groceries
+  bananas:
+    display_name: bananas
+    parent: fruits
+    aliases:
+      - banana
+      - kela
+      - केला
+    category: Groceries
+  mangoes:
+    display_name: mangoes
+    parent: fruits
+    aliases:
+      - mango
+      - aam
+      - आम
+    category: Groceries
+  oranges:
+    display_name: oranges
+    parent: fruits
+    aliases:
+      - orange
+      - santra
+      - संतरा
+    category: Groceries
+  veggies:
+    display_name: veggies
+    parent: null
+    aliases:
+      - vegetables
+      - vegetable
+      - veg
+      - sabzi
+      - sabji
+      - सब्जी
+    category: Groceries
+  bhindi:
+    display_name: bhindi
+    parent: veggies
+    aliases:
+      - okra
+      - ladyfinger
+      - lady finger
+      - भिंडी
+    category: Groceries
+  potatoes:
+    display_name: potatoes
+    parent: veggies
+    aliases:
+      - potato
+      - aloo
+      - आलू
+    category: Groceries
+  onions:
+    display_name: onions
+    parent: veggies
+    aliases:
+      - onion
+      - pyaz
+      - pyaaz
+      - प्याज
+    category: Groceries
+  tomatoes:
+    display_name: tomatoes
+    parent: veggies
+    aliases:
+      - tomato
+      - tamatar
+      - टमाटर
+    category: Groceries
+  spinach:
+    display_name: spinach
+    parent: veggies
+    aliases:
+      - palak
+      - पालक
+    category: Groceries
+  carrots:
+    display_name: carrots
+    parent: veggies
+    aliases:
+      - carrot
+      - gajar
+      - गाजर
+    category: Groceries
+  milk:
+    display_name: milk
+    parent: null
+    aliases:
+      - doodh
+      - दूध
+    category: Groceries
+  curd:
+    display_name: curd
+    parent: null
+    aliases:
+      - yogurt
+      - yoghurt
+      - dahi
+      - दही
+    category: Groceries
+  paneer:
+    display_name: paneer
+    parent: null
+    aliases:
+      - cottage cheese
+      - पनीर
+    category: Groceries
+  butter:
+    display_name: butter
+    parent: null
+    aliases:
+      - makhan
+      - मक्खन
+    category: Groceries
+  cheese:
+    display_name: cheese
+    parent: null
+    aliases:
+      - चीज़
+    category: Groceries
+  bread:
+    display_name: bread
+    parent: null
+    aliases:
+      - loaf
+      - pav
+      - पाव
+    category: Groceries
+  eggs:
+    display_name: eggs
+    parent: null
+    aliases:
+      - egg
+      - anda
+      - अंडा
+    category: Groceries
+  chicken:
+    display_name: chicken
+    parent: null
+    aliases:
+      - murga
+      - murgi
+      - चिकन
+    category: Groceries
+  fish:
+    display_name: fish
+    parent: null
+    aliases:
+      - machli
+      - मछली
+    category: Groceries
+  mutton:
+    display_name: mutton
+    parent: null
+    aliases:
+      - goat meat
+      - मटन
+    category: Groceries
+  rice:
+    display_name: rice
+    parent: null
+    aliases:
+      - chawal
+      - चावल
+    category: Groceries
+  atta:
+    display_name: atta
+    parent: null
+    aliases:
+      - flour
+      - wheat flour
+      - आटा
+    category: Groceries
+  oil:
+    display_name: oil
+    parent: null
+    aliases:
+      - cooking oil
+      - tel
+      - तेल
+    category: Groceries
+  sugar:
+    display_name: sugar
+    parent: null
+    aliases:
+      - cheeni
+      - चीनी
+    category: Groceries
+  salt:
+    display_name: salt
+    parent: null
+    aliases:
+      - namak
+      - नमक
+    category: Groceries
+  tea:
+    display_name: tea
+    parent: null
+    aliases:
+      - chai
+      - चाय
+    category: Groceries
+  coffee:
+    display_name: coffee
+    parent: null
+    aliases:
+      - cappuccino
+      - latte
+    category: Dining Out
+  pizza:
+    display_name: pizza
+    parent: null
+    aliases:
+      - पिज़्ज़ा
+    category: Dining Out
+  burger:
+    display_name: burger
+    parent: null
+    aliases:
+      - बर्गर
+    category: Dining Out
+  sandwich:
+    display_name: sandwich
+    parent: null
+    aliases:
+      - सैंडविच
+    category: Dining Out
+  petrol:
+    display_name: petrol
+    parent: null
+    aliases:
+      - fuel
+      - diesel
+      - gas
+    category: Transport
+
+# ----------------------------------------------------------------------------
+# Merchant tags: where it was bought.
+# `category_services` maps a suggested category to a service, used when there
+# is no explicit service keyword (e.g. apples + swiggy -> Instamart).
+# ----------------------------------------------------------------------------
+merchants:
+  blinkit:
+    display_name: Blinkit
+    aliases:
+      - blinkit
+      - blink it
+      - blinkit app
+    default_channel: online
+    default_category: Groceries
+  swiggy:
+    display_name: Swiggy
+    aliases:
+      - swiggy
+      - swiggy app
+    default_channel: online
+    default_category: Dining Out
+    default_service: food_delivery
+    category_services:
+      Groceries: instamart
+    service_priority:
+      - dineout
+      - food_delivery
+      - instamart
+  star_market:
+    display_name: Star Market
+    aliases:
+      - star market
+      - starmarket
+      - star market store
+      - start market
+    default_channel: instore
+    default_category: Groceries
+  zepto:
+    display_name: Zepto
+    aliases:
+      - zepto
+      - zepto app
+    default_channel: online
+    default_category: Groceries
+  bigbasket:
+    display_name: BigBasket
+    aliases:
+      - bigbasket
+      - big basket
+    default_channel: online
+    default_category: Groceries
+  dmart:
+    display_name: DMart
+    aliases:
+      - dmart
+      - d-mart
+      - d mart
+    default_channel: instore
+    default_category: Groceries
+  local_market:
+    display_name: Local market
+    aliases:
+      - local market
+      - mandi
+      - sabzi mandi
+      - vegetable market
+    default_channel: instore
+    default_category: Groceries
+  amazon:
+    display_name: Amazon
+    aliases:
+      - amazon
+      - amazon app
+      - amazon india
+    default_channel: online
+    default_category: Shopping
+  flipkart:
+    display_name: Flipkart
+    aliases:
+      - flipkart
+      - flipkart app
+    default_channel: online
+    default_category: Shopping
+
+# ----------------------------------------------------------------------------
+# Fallback category rules. The first matching rule wins unless an item has a
+# more specific category. Keep the item-specific categories in `items`.
+# ----------------------------------------------------------------------------
+category_rules:
+  - any_tags:
+      - fruits
+      - apples
+      - bananas
+      - mangoes
+      - oranges
+      - veggies
+      - bhindi
+      - potatoes
+      - onions
+      - tomatoes
+      - spinach
+      - carrots
+      - milk
+      - curd
+      - paneer
+      - butter
+      - cheese
+      - bread
+      - eggs
+      - chicken
+      - fish
+      - mutton
+      - rice
+      - atta
+      - oil
+      - sugar
+      - salt
+      - tea
+    category: Groceries
+  - any_tags:
+      - pizza
+      - burger
+      - sandwich
+      - coffee
+    category: Dining Out
+  - any_tags:
+      - petrol
+    category: Transport
+  - any_tags:
+      - instamart
+    category: Groceries
+  - any_tags:
+      - dineout
+      - food_delivery
+    category: Dining Out
+
+# ----------------------------------------------------------------------------
+# Optional quantity/unit hints for future parsing ("2 kg apples", "1 l milk").
+# Not used for tags in v1; reserved for quantity analytics later.
+# ----------------------------------------------------------------------------
+units:
+  kg:
+    aliases: [kg, kgs, kilogram, kilograms, kilo]
+  g:
+    aliases: [g, gm, gms, gram, grams]
+  l:
+    aliases: [l, litre, liter, liters, litres]
+  ml:
+    aliases: [ml, milliliter, millilitre]
+  dozen:
+    aliases: [dozen, dz]
+  piece:
+    aliases: [piece, pieces, pc, pcs, pkt, packet]

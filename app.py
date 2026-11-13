@@ -1,49 +1,108 @@
+"""Finance tracker entry point.
+
+The v2 app is append-only: forms queue a plan, the global confirm screen is the
+only place that writes, and every write is audited. Dashboards are deliberately
+deferred until data entry is tested and confirmed.
+"""
+
+from __future__ import annotations
+
 import streamlit as st
-from src.profile_selector import render_profile_selector
-from src.database import load_data, initialize_database
-from src.analytics import calculate_kpis, filter_visible_data
-from src.components.forms import render_transaction_form, render_setup_forms
-from src.components.charts import plot_expense_donut, plot_monthly_trend_bar, render_balance_table
 
-st.set_page_config(page_title="Personal Finance Tracker", page_icon="💰", layout="wide")
+st.set_page_config(
+    page_title="Ledger",
+    page_icon="💸",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-# --- One-Time Database Check & Header Initialization ---
-if "db_initialized" not in st.session_state:
-    with st.spinner("Verifying cloud database schemas..."):
-        initialize_database()
-        st.session_state["db_initialized"] = True
-# -------------------------------------------------------
+from src.data_sources import active_spreadsheet_id, ensure_active_source  # noqa: E402
+from src.db.bootstrap import bootstrap  # noqa: E402
+from src.source_selector import render_source_selector  # noqa: E402
+from src.ui.pages import accounts, assets, bills, entry, ledger  # noqa: E402
+from src.ui.pages import settings as settings_page  # noqa: E402
+from src.ui.pages.entry import render_pending_confirmation  # noqa: E402
+from src.ui.theme import apply_theme  # noqa: E402
 
-st.title("📊 Cloud-Native Personal Finance Tracker")
+apply_theme()
 
-active_user, view_mode = render_profile_selector()
-page = st.sidebar.radio("Navigation", ["Dashboard", "Log Entry", "Manage Accounts & Cards"])
+try:
+    st.logo("assets/logo.svg", size="large")
+except Exception:
+    pass
 
-df_transactions = load_data("Transactions")
 
-if page == "Log Entry":
-    render_transaction_form(active_user)
-elif page == "Manage Accounts & Cards":
-    render_setup_forms(active_user)
-elif page == "Dashboard":
-    st.subheader(f"Financial Overview ({view_mode} View - {active_user})")
-    
-    income, expenditure, savings, savings_rate = calculate_kpis(df_transactions, active_user, view_mode)
-    
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Income", f"₹{income:,.2f}")
-    col2.metric("Total Expenditure", f"₹{expenditure:,.2f}")
-    col3.metric("Net Savings", f"₹{savings:,.2f}")
-    col4.metric("Savings Rate", f"{savings_rate:.1f}%")
-    
-    st.markdown("---")
-    
-    chart_df = filter_visible_data(df_transactions, active_user, view_mode)
-    
-    col_left, col_right = st.columns(2)
-    with col_left:
-        plot_expense_donut(chart_df)
-    with col_right:
-        plot_monthly_trend_bar(chart_df)
-        
-    render_balance_table(chart_df)
+def _new_entry() -> None:
+    entry.render()
+
+
+def _ledger() -> None:
+    ledger.render()
+
+
+def _holdings() -> None:
+    assets.render()
+
+
+def _accounts() -> None:
+    accounts.render()
+
+
+def _bills() -> None:
+    bills.render()
+
+
+def _settings() -> None:
+    settings_page.render()
+
+
+pages = {
+    "Capture": [
+        st.Page(_new_entry, title="New entry", url_path="new-entry", default=True),
+    ],
+    "Review": [
+        st.Page(_ledger, title="Ledger", url_path="ledger"),
+        st.Page(_holdings, title="Holdings", url_path="holdings"),
+    ],
+    "Setup": [
+        st.Page(_accounts, title="Accounts & cards", url_path="accounts"),
+        st.Page(_bills, title="Bills & limits", url_path="bills"),
+        st.Page(_settings, title="Settings", url_path="settings"),
+    ],
+}
+
+try:
+    active_alias = ensure_active_source()
+    spreadsheet_id = active_spreadsheet_id()
+except Exception as exc:
+    st.error(
+        "No spreadsheets are configured. Add a [spreadsheets] table to "
+        ".streamlit/secrets.toml with alias = spreadsheet-id entries."
+    )
+    st.caption(f"Configuration error: {type(exc).__name__}")
+    st.stop()
+
+try:
+    with st.spinner("Checking the data store..."):
+        bootstrap(spreadsheet_id, active_alias)
+except Exception as exc:
+    # Still show the selector so a broken sheet can be switched away from.
+    try:
+        render_source_selector()
+    except Exception:
+        pass
+    st.error(
+        "The Google Sheets data store could not be initialised. "
+        "Check .streamlit/secrets.toml and the sheet permissions."
+    )
+    st.caption(f"Startup error: {type(exc).__name__}")
+    st.stop()
+
+navigation = st.navigation(pages, position="sidebar")
+active_alias = render_source_selector()
+
+if st.session_state.get("pending_plan"):
+    render_pending_confirmation(active_alias)
+    st.stop()
+
+navigation.run()
