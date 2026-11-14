@@ -35,8 +35,8 @@
    - Assets and trade ledger, duplicate detection, tag suggestions, defaults,
      recurring rules and limits.
 4. **UI shell**
-   - OpenCode-like dark neutral theme, Inter + JetBrains Mono, compact max-width,
-     responsive CSS, sidebar navigation and profile switcher.
+   - Light neutral theme, Inter + JetBrains Mono, compact max-width,
+     responsive CSS, sidebar navigation and spreadsheet selector (aliases only).
 5. **Entry experience**
    - Type pills → compact form → confirm summary → save.
    - Suggested tags/category, editable chips, duplicate warning, save-anyway.

@@ -765,7 +765,7 @@ Ship after Phase 3; add Phase 4 next; polish with 5–6.
 | Concurrent writes | Append-only ledger, no in-place balance edits, retry |
 | Float money drift | Integer paise |
 | Migration data loss | Tag release, copy tabs, verify sums, rollback |
-| Privacy leak in Combined view | Service-layer filtering + tests |
+| Data leak across spreadsheets | Per-sheet caches, one owner per alias, isolation tests |
 | Scope creep | Ship Phase 3, then 4; defer auth to when needed |
 
 ---

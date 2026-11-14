@@ -23,7 +23,7 @@ Legend: **R** = required · **O** = optional · **A** = auto/derived (not typed)
 | Idempotent submit | Each rendered form gets a `ClientRequestID`. A repeated submit returns the existing entry instead of writing a second one. |
 | Duplicate warning | Same or near-same entries show a side-by-side candidate panel before saving. Saving anyway records `DuplicateOfEntryID` + an audit override. |
 | Description | Optional, max ~120 chars, sanitized by `privacy.sanitize_free_text()`. |
-| Private | Checkbox, default **off**. Hidden from other household members in Combined view. Only meaningful on ledger entries. |
+| Private | Checkbox, default **off**. Stored and shown in the ledger; no combined view exists in this build. Only meaningful on ledger entries. |
 | Currency | Default from user settings (INR). |
 | Never asked | Account number, card/PAN number, CVV, expiry, IFSC, UPI ID, PIN, customer ID. |
 
